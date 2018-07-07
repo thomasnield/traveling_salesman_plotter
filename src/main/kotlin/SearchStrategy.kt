@@ -1,5 +1,6 @@
 import tornadofx.*
 import kotlin.math.exp
+import kotlin.math.roundToInt
 
 enum class SearchStrategy {
     RANDOM {
@@ -97,68 +98,14 @@ enum class SearchStrategy {
             var bestSolution = Tour.toConfiguration()
 
             val tempSchedule = sequenceOf(
+                    //generateSequence(160.0) { (it - .01).takeIf { it >= 80 } },
+                    generateSequence(80.0) { (it - .001).takeIf { it >= 0 } }
 
 
-                    // modest wave 1
-                    800 downTo 600,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0,
-
-
-                    // modest wave 2
-                    800 downTo 600,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0,
-
-
-                    // high heat wave 1
-                    2000 downTo 600 step 20,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0,
-
-                    800 downTo 600,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0,
-
-                    // high heat wave 1
-                    3000 downTo 600 step 20,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0,
-
-                    2000 downTo 600 step 20,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0,
-
-                    800 downTo 600,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0,
-
-                    1200 downTo 600,
-                    600..800,
-                    800 downTo 400,
-                    400..600,
-                    600 downTo 0
-
-            ).flatMap { it.asSequence() }
-                    .toList()
-                    .let { it.asSequence().plus(it.asSequence()) }
-                    .toList().toTypedArray().toIntArray().let {
-                        TempSchedule(1000, it)
-                    }
+            ).flatMap { it }
+            .toList().toTypedArray().toDoubleArray().let {
+                TempSchedule(200, it)
+            }
 
             while(tempSchedule.next()) {
 
@@ -186,7 +133,7 @@ enum class SearchStrategy {
 
                                         // Desmos graph for intuition: https://www.desmos.com/calculator/mn6av6ixx2
                                         if (weightedCoinFlip(
-                                                        exp((-(neighborDistance - bestDistance)) / (tempSchedule.heat.toDouble() * .1))
+                                                        exp((-(neighborDistance - bestDistance)) / tempSchedule.heat)
                                                 )
                                         ) {
                                             swap.animate()
@@ -199,6 +146,12 @@ enum class SearchStrategy {
                                 }
                             }
                         }
+
+                sequentialTransition += timeline(play=false) {
+                    keyframe(1.millis) {
+                        keyvalue(Parameters.animatedTempProperty, tempSchedule.ratio)
+                    }
+                }
             }
 
             (1..10).forEach {

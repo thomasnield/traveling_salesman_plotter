@@ -1,6 +1,4 @@
 import javafx.application.Application
-import javafx.beans.property.SimpleObjectProperty
-import javafx.collections.FXCollections
 import javafx.geometry.Orientation
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
@@ -23,6 +21,7 @@ class TSPView: View() {
 
     override val root = borderpane {
 
+
         left = toolbar {
             orientation = Orientation.VERTICAL
 
@@ -37,7 +36,43 @@ class TSPView: View() {
                     useMaxWidth = true
                 }
             }
+
+            stackpane {
+                progressbar(Parameters.animatedTempProperty) {
+                    style {
+                        accentColor = Color.RED
+                    }
+                    useMaxWidth = true
+                }
+                label(Parameters.animatedTempProperty)
+                useMaxWidth = true
+            }
         }
+
+/*
+        left = drawer {
+            item("SIMULATED ANNEALING") {
+                vbox {
+                    stackpane {
+                        progressbar(Parameters.animatedTempProperty) {
+                            style {
+                                accentColor = Color.RED
+                            }
+                        }
+                        label(Parameters.animatedTempProperty)
+                        useMaxWidth = true
+                    }
+                    button("RUN") {
+                        setOnAction {
+                            SearchStrategy.prepare()
+                            SearchStrategy.SIMULATED_ANNEALING.execute()
+                            sequentialTransition.play()
+                        }
+                        useMaxWidth = true
+                    }
+                }
+            }
+        }*/
 
         center = pane {
 
