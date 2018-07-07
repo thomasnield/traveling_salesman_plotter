@@ -3,6 +3,17 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
 import tornadofx.*
 
+
+data class Point(val x: Double, val y: Double)
+
+fun ccw(a: Point, b: Point, c: Point) =
+        (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
+
+fun intersect(a: Point, b: Point, c: Point, d: Point) =
+        ccw(a,c,d) != ccw(b,c,d) && ccw(a,b,c) != ccw(a,b,d)
+
+
+
 class Edge(val id: Int, startingCity: City) {
 
     val startCityProperty = SimpleObjectProperty(startingCity)
@@ -16,6 +27,9 @@ class Edge(val id: Int, startingCity: City) {
     val edgeEndX = SimpleDoubleProperty(startCityProperty.get().x)
     val edgeEndY = SimpleDoubleProperty(startCityProperty.get().y)
 
+    val startPoint get() = Point(startCity.x, startCity.y)
+    val endPoint get() = Point(endCity.x, endCity.y)
+
     val nextEdge get() = (all.firstOrNull { it != this && it.startCity == endCity }) ?:
         (all.firstOrNull { it != this && it.endCity == endCity }?.also { it.flip() })
 
@@ -28,6 +42,13 @@ class Edge(val id: Int, startingCity: City) {
         endCity = city1
     }
 
+    val intersectConflicts get() = Edge.all.asSequence()
+            .filter { it != this }
+            .filter { edge2 ->
+                startCity !in edge2.let { setOf(it.startCity, it.endCity) } &&
+                        endCity !in edge2.let { setOf(it.startCity, it.endCity) } &&
+                        intersect(startPoint, endPoint, edge2.startPoint, edge2.endPoint)
+            }
 
     class Swap(val city1: City,
                val city2: City,
@@ -61,7 +82,7 @@ class Edge(val id: Int, startingCity: City) {
         override fun toString() = "$city1-$city2 ($edge1)-($edge2)"
     }
 
-    fun attemptSafeSwap(otherEdge: Edge): Swap? {
+    fun attemptTwoSwap(otherEdge: Edge): Swap? {
 
         val e1 = this
         val e2 = otherEdge
@@ -84,7 +105,7 @@ class Edge(val id: Int, startingCity: City) {
         }
                 .firstOrNull { swap ->
                     swap.execute()
-                    val result = Edge.tourMaintained
+                    val result = Tour.isMaintained
                     if (!result) {
                         swap.reverse()
                     }
@@ -115,6 +136,17 @@ class Edge(val id: Int, startingCity: City) {
         }
     }
 
+    fun animateChange() {
+        sequentialTransition += timeline(play = false) {
+            keyframe(speed) {
+                keyvalue(edgeStartX, startCity?.x ?: 0.0)
+                keyvalue(edgeStartY, startCity?.y ?: 0.0)
+                keyvalue(edgeEndX, endCity?.x ?: 0.0)
+                keyvalue(edgeEndY, endCity?.y ?: 0.0)
+            }
+        }
+    }
+
     companion object {
 
         val all = FXCollections.observableArrayList<Edge>()
@@ -131,15 +163,5 @@ class Edge(val id: Int, startingCity: City) {
             City.all.map { Edge(id++, it) }
                     .also { all.setAll(it) }
         }
-
-        val traverseTour: Sequence<Edge> get() {
-            val captured = mutableSetOf<Edge>()
-
-            return generateSequence(all.first()) {
-                it.nextEdge?.takeIf { it !in captured }
-            }.onEach { captured += it }
-        }
-        val tourDistance get() = all.map { it.distance }.sum()
-        val tourMaintained get() = traverseTour.count() == all.count()
     }
 }

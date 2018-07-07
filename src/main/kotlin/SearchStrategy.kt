@@ -1,3 +1,6 @@
+import tornadofx.*
+import kotlin.math.exp
+
 enum class SearchStrategy {
     RANDOM {
         override fun execute() {
@@ -17,7 +20,8 @@ enum class SearchStrategy {
                 edge = nextRandom
             }
 
-            if (!Edge.tourMaintained) throw Exception("Tour broken in RANDOM SearchStrategy \r\n${Edge.all.joinToString("\r\n")}")
+            if (!Tour.isMaintained) throw Exception("Tour broken in RANDOM SearchStrategy \r\n${Edge.all.joinToString("\r\n")}")
+            defaultAnimationOn = true
         }
     },
 
@@ -37,7 +41,24 @@ enum class SearchStrategy {
                 edge.endCity = closest.startCity
                 edge = closest
             }
-            if (!Edge.tourMaintained) throw Exception("Tour broken in GREEDY SearchStrategy \r\n${Edge.all.joinToString("\r\n")}")
+            if (!Tour.isMaintained) throw Exception("Tour broken in GREEDY SearchStrategy \r\n${Edge.all.joinToString("\r\n")}")
+            defaultAnimationOn = true
+        }
+    },
+
+    REMOVE_OVERLAPS {
+        override fun execute() {
+
+            SearchStrategy.RANDOM.execute()
+            defaultAnimationOn = false
+
+            (1..10).forEach {
+                Tour.conflicts.forEach { (x, y) ->
+                    x.attemptTwoSwap(y)?.animate()
+                }
+            }
+
+            defaultAnimationOn= true
         }
     },
 
@@ -47,27 +68,153 @@ enum class SearchStrategy {
             SearchStrategy.RANDOM.execute()
             defaultAnimationOn = false
 
-            (1..4000).forEach { iteration ->
+            (1..10000).forEach { iteration ->
                 Edge.all.sampleDistinct(2).toList()
                         .let { it.first() to it.last() }
                         .also { (e1,e2) ->
 
-                            val oldDistance = Edge.tourDistance
-                            e1.attemptSafeSwap(e2)?.also {
+                            val oldDistance = Tour.tourDistance
+                            e1.attemptTwoSwap(e2)?.also {
                                 when {
-                                    oldDistance <= Edge.tourDistance -> it.reverse()
-                                    oldDistance > Edge.tourDistance -> it.animate()
+                                    oldDistance <= Tour.tourDistance -> it.reverse()
+                                    oldDistance > Tour.tourDistance -> it.animate()
                                 }
                             }
                         }
             }
-/*
-            (1..4).forEach {
-                Model.intersectConflicts.forEach { (x, y) ->
-                    x.attemptSafeSwap(y)?.animate()
+
+            if (!Tour.isMaintained) throw Exception("Tour broken in TWO_OPT SearchStrategy \r\n${Edge.all.joinToString("\r\n")}")
+            defaultAnimationOn = true
+        }
+    },
+    SIMULATED_ANNEALING {
+        override fun execute() {
+            SearchStrategy.RANDOM.execute()
+            defaultAnimationOn = false
+
+
+            var bestDistance = Tour.tourDistance
+            var bestSolution = Tour.toConfiguration()
+
+            val tempSchedule = sequenceOf(
+
+
+                    // modest wave 1
+                    800 downTo 600,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0,
+
+
+                    // modest wave 2
+                    800 downTo 600,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0,
+
+
+                    // high heat wave 1
+                    2000 downTo 600 step 20,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0,
+
+                    800 downTo 600,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0,
+
+                    // high heat wave 1
+                    3000 downTo 600 step 20,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0,
+
+                    2000 downTo 600 step 20,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0,
+
+                    800 downTo 600,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0,
+
+                    1200 downTo 600,
+                    600..800,
+                    800 downTo 400,
+                    400..600,
+                    600 downTo 0
+
+            ).flatMap { it.asSequence() }
+                    .toList()
+                    .let { it.asSequence().plus(it.asSequence()) }
+                    .toList().toTypedArray().toIntArray().let {
+                        TempSchedule(1000, it)
+                    }
+
+            while(tempSchedule.next()) {
+
+                Edge.all.sampleDistinct(2)
+                        .toList()
+                        .let { it.first() to it.last() }
+                        .also { (e1,e2) ->
+
+                            val oldDistance = Tour.tourDistance
+
+                            e1.attemptTwoSwap(e2)?.also { swap ->
+
+                                val neighborDistance = Tour.tourDistance
+
+                                when {
+                                    oldDistance == neighborDistance -> swap.reverse()
+                                    neighborDistance == bestDistance -> swap.reverse()
+                                    bestDistance > neighborDistance -> {
+                                        println("${tempSchedule.ratio}: $bestDistance->$neighborDistance")
+                                        bestDistance = neighborDistance
+                                        bestSolution = Tour.toConfiguration()
+                                        swap.animate()
+                                    }
+                                    bestDistance < neighborDistance -> {
+
+                                        // Desmos graph for intuition: https://www.desmos.com/calculator/mn6av6ixx2
+                                        if (weightedCoinFlip(
+                                                        exp((-(neighborDistance - bestDistance)) / (tempSchedule.heat.toDouble() * .1))
+                                                )
+                                        ) {
+                                            swap.animate()
+                                            println("${tempSchedule.heat} accepting degrading solution: $bestDistance -> $neighborDistance")
+
+                                        } else {
+                                            swap.reverse()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+            }
+
+            (1..10).forEach {
+                Tour.conflicts.forEach { (x, y) ->
+                    x.attemptTwoSwap(y)?.animate()
                 }
-            }*/
-            if (!Edge.tourMaintained) throw Exception("Tour broken in TWO_OPT SearchStrategy \r\n${Edge.all.joinToString("\r\n")}")
+            }
+
+            // apply best found model
+            if (Tour.tourDistance > bestDistance) {
+                Tour.applyConfiguration(bestSolution)
+                Edge.all.forEach { it.animateChange() }
+            }
+            println("$bestDistance<==>${Tour.tourDistance}")
+            defaultAnimationOn = true
+
         }
     };
 
