@@ -1,2 +1,2 @@
 # traveling_salesman_plotter
-A Traveling Salesman Problem plotter built in Kotlin/TornadoF
+A Traveling Salesman Problem plotter built in Kotlin/TornadoFX
