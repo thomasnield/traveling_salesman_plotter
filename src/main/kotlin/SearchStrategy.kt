@@ -98,10 +98,7 @@ enum class SearchStrategy {
             var bestSolution = Tour.toConfiguration()
 
             val tempSchedule = sequenceOf(
-                    //generateSequence(160.0) { (it - .01).takeIf { it >= 80 } },
-                    generateSequence(80.0) { (it - .001).takeIf { it >= 0 } }
-
-
+                    generateSequence(80.0) { (it - .005).takeIf { it >= 0 } }
             ).flatMap { it }
             .toList().toTypedArray().toDoubleArray().let {
                 TempSchedule(200, it)
@@ -123,13 +120,17 @@ enum class SearchStrategy {
                                 when {
                                     oldDistance == neighborDistance -> swap.reverse()
                                     neighborDistance == bestDistance -> swap.reverse()
-                                    bestDistance > neighborDistance -> {
+                                    oldDistance > neighborDistance -> {
+
                                         println("${tempSchedule.ratio}: $bestDistance->$neighborDistance")
-                                        bestDistance = neighborDistance
-                                        bestSolution = Tour.toConfiguration()
+
+                                        if (bestDistance > neighborDistance) {
+                                            bestDistance = neighborDistance
+                                            bestSolution = Tour.toConfiguration()
+                                        }
                                         swap.animate()
                                     }
-                                    bestDistance < neighborDistance -> {
+                                    oldDistance < neighborDistance -> {
 
                                         // Desmos graph for intuition: https://www.desmos.com/calculator/mn6av6ixx2
                                         if (weightedCoinFlip(
