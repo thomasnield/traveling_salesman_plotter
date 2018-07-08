@@ -22,13 +22,13 @@ class Edge(val id: Int, startingCity: City) {
     val endCityProperty = SimpleObjectProperty(startingCity)
     var endCity by endCityProperty
 
-    val edgeStartX = SimpleDoubleProperty(startCityProperty.get().x)
-    val edgeStartY = SimpleDoubleProperty(startCityProperty.get().y)
-    val edgeEndX = SimpleDoubleProperty(startCityProperty.get().x)
-    val edgeEndY = SimpleDoubleProperty(startCityProperty.get().y)
+    val edgeStartX = SimpleDoubleProperty(startCityProperty.get().displayX)
+    val edgeStartY = SimpleDoubleProperty(startCityProperty.get().displayY)
+    val edgeEndX = SimpleDoubleProperty(startCityProperty.get().displayX)
+    val edgeEndY = SimpleDoubleProperty(startCityProperty.get().displayY)
 
-    val startPoint get() = Point(startCity.x, startCity.y)
-    val endPoint get() = Point(endCity.x, endCity.y)
+    val startPoint get() = Point(startCity.displayX, startCity.displayY)
+    val endPoint get() = Point(endCity.displayX, endCity.displayY)
 
     val nextEdge get() = (all.firstOrNull { it != this && it.startCity == endCity }) ?:
         (all.firstOrNull { it != this && it.endCity == endCity }?.also { it.flip() })
@@ -70,10 +70,10 @@ class Edge(val id: Int, startingCity: City) {
             sequentialTransition += timeline(play = false) {
                 keyframe(speed) {
                     sequenceOf(edge1,edge2).forEach {
-                        keyvalue(it.edgeStartX, it.startCity?.x ?: 0.0)
-                        keyvalue(it.edgeStartY, it.startCity?.y ?: 0.0)
-                        keyvalue(it.edgeEndX, it.endCity?.x ?: 0.0)
-                        keyvalue(it.edgeEndY, it.endCity?.y ?: 0.0)
+                        keyvalue(it.edgeStartX, it.startCity?.displayX ?: 0.0)
+                        keyvalue(it.edgeStartY, it.startCity?.displayY ?: 0.0)
+                        keyvalue(it.edgeEndX, it.endCity?.displayX ?: 0.0)
+                        keyvalue(it.edgeEndY, it.endCity?.displayY ?: 0.0)
                     }
                 }
             }
@@ -119,8 +119,8 @@ class Edge(val id: Int, startingCity: City) {
             if (defaultAnimationOn) {
                 sequentialTransition += timeline(play = false) {
                     keyframe(speed) {
-                        keyvalue(edgeStartX, it?.x ?: 0.0)
-                        keyvalue(edgeStartY, it?.y ?: 0.0)
+                        keyvalue(edgeStartX, it?.displayX ?: 0.0)
+                        keyvalue(edgeStartY, it?.displayY ?: 0.0)
                     }
                 }
             }
@@ -129,8 +129,8 @@ class Edge(val id: Int, startingCity: City) {
             if (defaultAnimationOn)
                 sequentialTransition += timeline(play = false) {
                     keyframe(speed) {
-                        keyvalue(edgeEndX, it?.x ?: 0.0)
-                        keyvalue(edgeEndY, it?.y ?: 0.0)
+                        keyvalue(edgeEndX, it?.displayX ?: 0.0)
+                        keyvalue(edgeEndY, it?.displayY ?: 0.0)
                     }
                 }
         }
@@ -139,10 +139,10 @@ class Edge(val id: Int, startingCity: City) {
     fun animateChange() {
         sequentialTransition += timeline(play = false) {
             keyframe(speed) {
-                keyvalue(edgeStartX, startCity?.x ?: 0.0)
-                keyvalue(edgeStartY, startCity?.y ?: 0.0)
-                keyvalue(edgeEndX, endCity?.x ?: 0.0)
-                keyvalue(edgeEndY, endCity?.y ?: 0.0)
+                keyvalue(edgeStartX, startCity?.displayX ?: 0.0)
+                keyvalue(edgeStartY, startCity?.displayY ?: 0.0)
+                keyvalue(edgeEndX, endCity?.displayX ?: 0.0)
+                keyvalue(edgeEndY, endCity?.displayY ?: 0.0)
             }
         }
     }

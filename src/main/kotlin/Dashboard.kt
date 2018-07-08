@@ -1,18 +1,25 @@
 import javafx.application.Application
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.geometry.Orientation
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
+import javafx.stage.FileChooser
 import tornadofx.*
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 
 fun main(args: Array<String>) = Application.launch(TSPApp::class.java, *args)
 
 class TSPApp: App(TSPView::class)
 
+val plotAreaWidthProperty = SimpleDoubleProperty()
+val plotAreaWidth get() = plotAreaWidthProperty.get()
 
-
+val plotAreaHeightProperty = SimpleDoubleProperty()
+val plotAreaHeight get() = plotAreaHeightProperty.get()
 
 class TSPView: View() {
 
@@ -21,6 +28,36 @@ class TSPView: View() {
 
     override val root = borderpane {
 
+        top = menubar {
+            menu("File") {
+                item("Import CSV") {
+                    setOnAction {
+                        FileChooser().showOpenDialog(null)
+                                .readLines().asSequence()
+                                .drop(1)
+                                .map { it.split(" ").map { it.toDouble() } }
+                                .toList().let {
+                                    val maxWidth = it.asSequence().map { it[0] }.max()!!
+                                    val maxHeight = it.asSequence().map { it[1] }.max()!!
+
+                                    val xScale = (plotAreaWidth - maxWidth) / maxWidth
+                                    val yScale = (plotAreaHeight - maxHeight) / maxHeight
+
+                                    it.mapIndexed { i,c -> City(i, c[0], c[1], xScale, yScale) }
+                                }
+                                .also {
+                                    City.all.setAll(it)
+                                }
+
+                    }
+                }
+                item("Export CSV") {
+                    setOnAction {
+                        FileChooser().showOpenDialog(null)
+                    }
+                }
+            }
+        }
 
         left = toolbar {
             orientation = Orientation.VERTICAL
@@ -44,37 +81,18 @@ class TSPView: View() {
                     }
                     useMaxWidth = true
                 }
-                label(Parameters.animatedTempProperty)
+                label {
+                    Parameters.animatedTempProperty.onChange {
+                        text = BigDecimal(it).setScale(2, RoundingMode.HALF_UP).toString()
+                    }
+                }
                 useMaxWidth = true
             }
         }
 
-/*
-        left = drawer {
-            item("SIMULATED ANNEALING") {
-                vbox {
-                    stackpane {
-                        progressbar(Parameters.animatedTempProperty) {
-                            style {
-                                accentColor = Color.RED
-                            }
-                        }
-                        label(Parameters.animatedTempProperty)
-                        useMaxWidth = true
-                    }
-                    button("RUN") {
-                        setOnAction {
-                            SearchStrategy.prepare()
-                            SearchStrategy.SIMULATED_ANNEALING.execute()
-                            sequentialTransition.play()
-                        }
-                        useMaxWidth = true
-                    }
-                }
-            }
-        }*/
-
         center = pane {
+            plotAreaWidthProperty.bind(widthProperty())
+            plotAreaHeightProperty.bind(heightProperty())
 
             // Sychronize changes to cities
             City.all.onChange {
@@ -82,7 +100,7 @@ class TSPView: View() {
                 dots.clear()
 
                 it.list.forEach {
-                    Circle(it.x, it.y, 5.0).apply {
+                    Circle(it.displayX, it.displayY, 5.0).apply {
                         fill = Color.RED
                         children += this
                         dots += this

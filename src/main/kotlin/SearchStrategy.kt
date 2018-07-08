@@ -1,6 +1,5 @@
 import tornadofx.*
 import kotlin.math.exp
-import kotlin.math.roundToInt
 
 enum class SearchStrategy {
     RANDOM {
@@ -98,9 +97,9 @@ enum class SearchStrategy {
             var bestSolution = Tour.toConfiguration()
 
             val tempSchedule = sequenceOf(
-                    generateSequence(80.0) { (it - .005).takeIf { it >= 30 } },
+                    generateSequence(80.0) { (it - .005).takeIf { it >= 0 } }/*,
                     generateSequence(0.0) { (it + .005).takeIf { it <= 80 } },
-                    generateSequence(80.0) { (it - .005).takeIf { it >= 30 } }
+                    generateSequence(80.0) { (it - .005).takeIf { it >= 30 } }*/
                     ).flatMap { it }
             .toList().toTypedArray().toDoubleArray().let {
                 TempSchedule(200, it)
@@ -160,6 +159,12 @@ enum class SearchStrategy {
             (1..10).forEach {
                 Tour.conflicts.forEach { (x, y) ->
                     x.attemptTwoSwap(y)?.animate()
+                }
+            }
+
+            sequentialTransition += timeline(play=false) {
+                keyframe(2.seconds) {
+                    keyvalue(Parameters.animatedTempProperty, 0)
                 }
             }
 
