@@ -3,7 +3,7 @@ object Tour {
     val traverseTour: Sequence<Edge> get() {
         val captured = mutableSetOf<Edge>()
 
-        return generateSequence(Edge.all.first()) {
+        return generateSequence(Edge.all.minBy { it.id }) {
             it.nextEdge?.takeIf { it !in captured }
         }.onEach { captured += it }
     }

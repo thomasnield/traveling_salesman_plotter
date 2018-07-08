@@ -1,4 +1,3 @@
-import javafx.application.Application
 import javafx.geometry.Orientation
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
@@ -6,8 +5,6 @@ import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import tornadofx.*
 
-
-fun main(args: Array<String>) = Application.launch(TSPApp::class.java, *args)
 
 class TSPApp: App(TSPView::class)
 
