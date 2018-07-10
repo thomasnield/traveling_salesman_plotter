@@ -98,7 +98,7 @@ enum class SearchStrategy {
             var bestSolution = Tour.toConfiguration()
 
             val tempSchedule = sequenceOf(
-                    generateSequence(80.0) { (it - .005).takeIf { it >= 30 } }/*,
+                    generateSequence(80.0) { (it - .005).takeIf { it >= 0 } }/*,
                     generateSequence(0.0) { (it + .005).takeIf { it <= 80 } },
                     generateSequence(80.0) { (it - .005).takeIf { it >= 30 } }*/
                     ).flatMap { it }
