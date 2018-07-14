@@ -1,3 +1,6 @@
+import org.ojalgo.okalgo.expression
+import org.ojalgo.okalgo.variable
+import org.ojalgo.optimisation.ExpressionsBasedModel
 import tornadofx.*
 import kotlin.math.exp
 import kotlin.math.roundToInt
@@ -170,6 +173,77 @@ enum class SearchStrategy {
             }
             println("$bestDistance<==>${Tour.tourDistance}")
             defaultAnimationOn = true
+
+        }
+    },
+
+
+    INTEGER {
+        override fun execute() {
+
+            val solver = ExpressionsBasedModel()
+
+            val cities = City.all
+
+            val cityDummies = cities.map { it to solver.variable(isInteger = true, lower = 0) }.toMap()
+
+            data class Segment(val city1: City, val city2: City) {
+                val selected = solver.variable(isBinary = true)
+                val distance get() = city1.distanceTo(city2)
+
+                val u_i = cityDummies[city1]!!
+                val u_j = cityDummies[city2]!!
+
+                // TODO this is not working :/
+                // https://en.wikipedia.org/wiki/Travelling_salesman_problem#Integer_linear_programming_formulation
+                init {
+                    solver.expression {
+                        set(u_i, 1)
+                        set(u_j, -1)
+                        set(selected, cities.size)
+                        upper(cities.size-1)
+                    }
+                }
+                operator fun contains(city: City) = city == city1 || city == city2
+            }
+
+            // create segments
+            val segments = cities.flatMap { city1 ->
+                cities.filter { it != city1 }
+                        .map { city1 to it }
+                        //.map { city2 -> if (city1.id > city2.id) city2 to city1 else city1 to city2 }
+            }.distinct()
+            .map { Segment(it.first, it.second) }
+            .toList()
+
+            solver.apply {
+
+                // constrain each city to have two connections
+                cities.forEach { city ->
+                    expression(lower=2, upper=2) {
+                        segments.filter { city in it }.forEach { set(it.selected, 1) }
+                    }
+                }
+
+                // minimize distance objective
+                expression(weight = 1) {
+                    segments.forEach {
+                        set(it.selected, it.distance)
+                    }
+                }
+
+            }
+
+            // execute and plot
+            val result = solver.minimise().also(::println)
+
+            segments.filter { it.selected.value.toInt() == 1 }
+                    .zip(Edge.all)
+                    .forEach { (selectedSegment, edge) ->
+                        edge.startCity = selectedSegment.city1
+                        edge.endCity = selectedSegment.city2
+                        edge.animateChange()
+                    }
 
         }
     };
