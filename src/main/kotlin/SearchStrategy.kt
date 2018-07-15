@@ -101,7 +101,7 @@ enum class SearchStrategy {
             var bestSolution = Tour.toConfiguration()
 
             val tempSchedule = sequenceOf(
-                    generateSequence(80.0) { (it - .005).takeIf { it >= 0 } }/*,
+                    generateSequence(120.0) { (it - .005).takeIf { it >= 0 } }/*,
                     generateSequence(0.0) { (it + .005).takeIf { it <= 80 } },
                     generateSequence(80.0) { (it - .005).takeIf { it >= 30 } }*/
                     ).flatMap { it }
@@ -127,7 +127,7 @@ enum class SearchStrategy {
                                     neighborDistance == bestDistance -> swap.reverse()
                                     oldDistance > neighborDistance -> {
 
-                                        println("${tempSchedule.ratio}: $bestDistance->$neighborDistance")
+                                        //println("${tempSchedule.ratio}: $bestDistance->$neighborDistance")
 
                                         if (bestDistance > neighborDistance) {
                                             bestDistance = neighborDistance
@@ -143,7 +143,7 @@ enum class SearchStrategy {
                                                 )
                                         ) {
                                             swap.animate()
-                                            println("${tempSchedule.heat} accepting degrading solution: $bestDistance -> $neighborDistance")
+                                            //println("${tempSchedule.heat} accepting degrading solution: $bestDistance -> $neighborDistance")
 
                                         } else {
                                             swap.reverse()
@@ -171,7 +171,7 @@ enum class SearchStrategy {
                 Tour.applyConfiguration(bestSolution)
                 Edge.all.forEach { it.animateChange() }
             }
-            println("$bestDistance<==>${Tour.tourDistance}")
+            //println("$bestDistance<==>${Tour.tourDistance}")
             defaultAnimationOn = true
 
         }

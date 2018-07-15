@@ -7,6 +7,9 @@ object Tour {
             it.nextEdge?.takeIf { it !in captured }
         }.onEach { captured += it }
     }
+
+    val traverseCities get() = traverseTour.map { it.startCity }
+
     val tourDistance get() = Edge.all.map { it.distance }.sum()
     val isMaintained get() = traverseTour.count() == Edge.all.count()
 

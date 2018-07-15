@@ -17,7 +17,9 @@ fun main(args: Array<String>) {
         SearchStrategy.prepare()
         SearchStrategy.SIMULATED_ANNEALING.execute()
 
-        println(Tour.tourDistance)
+        println("${Tour.tourDistance} 0")
+
+        println(Tour.traverseCities.map { it.id }.joinToString(" "))
 
     } else {
         Application.launch(TSPApp::class.java, *args)
