@@ -1,7 +1,4 @@
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleObjectProperty
 import javafx.collections.FXCollections
-import tornadofx.*
 
 
 data class Point(val x: Double, val y: Double)
@@ -16,16 +13,9 @@ fun intersect(a: Point, b: Point, c: Point, d: Point) =
 
 class Edge(val id: Int, startingCity: City) {
 
-    val startCityProperty = SimpleObjectProperty(startingCity)
-    var startCity by startCityProperty
+    var startCity = startingCity
 
-    val endCityProperty = SimpleObjectProperty(startingCity)
-    var endCity by endCityProperty
-
-    val edgeStartX = SimpleDoubleProperty(startCityProperty.get().x)
-    val edgeStartY = SimpleDoubleProperty(startCityProperty.get().y)
-    val edgeEndX = SimpleDoubleProperty(startCityProperty.get().x)
-    val edgeEndY = SimpleDoubleProperty(startCityProperty.get().y)
+    var endCity = startingCity
 
     val startPoint get() = Point(startCity.x, startCity.y)
     val endPoint get() = Point(endCity.x, endCity.y)
@@ -57,25 +47,21 @@ class Edge(val id: Int, startingCity: City) {
     ) {
 
         fun execute() {
-            edge1.let { sequenceOf(it.startCityProperty, it.endCityProperty) }.first { it.get() == city1 }.set(city2)
-            edge2.let { sequenceOf(it.startCityProperty, it.endCityProperty) }.first { it.get() == city2 }.set(city1)
+            edge1.let { sequenceOf(it.startCity, it.endCity) }.withIndex().first { (_,c) -> c == city1 }.also {
+                if (it.index ==0) edge1.startCity = city2 else edge1.endCity = city2
+            }
+
+            edge2.let { sequenceOf(it.startCity, it.endCity) }.withIndex().first { (_,c) -> c == city2 }.also {
+                if (it.index ==0) edge2.startCity = city1 else edge2.endCity = city1
+            }
         }
         fun reverse() {
-            edge1.let { sequenceOf(it.startCityProperty, it.endCityProperty) }.first { it.get() == city2 }.set(city1)
-            edge2.let { sequenceOf(it.startCityProperty, it.endCityProperty) }.first { it.get() == city1 }.set(city2)
-        }
+            edge1.let { sequenceOf(it.startCity, it.endCity) }.withIndex().first { (_,c) -> c == city2 }.also {
+                if (it.index ==0) edge1.startCity = city1 else edge1.endCity = city1
+            }
 
-
-        fun animate() {
-            sequentialTransition += timeline(play = false) {
-                keyframe(speed) {
-                    sequenceOf(edge1,edge2).forEach {
-                        keyvalue(it.edgeStartX, it.startCity?.x ?: 0.0)
-                        keyvalue(it.edgeStartY, it.startCity?.y ?: 0.0)
-                        keyvalue(it.edgeEndX, it.endCity?.x ?: 0.0)
-                        keyvalue(it.edgeEndY, it.endCity?.y ?: 0.0)
-                    }
-                }
+            edge2.let { sequenceOf(it.startCity, it.endCity) }.withIndex().first { (_,c) -> c == city1 }.also {
+                if (it.index ==0) edge2.startCity = city2 else edge2.endCity = city2
             }
         }
 
@@ -103,47 +89,13 @@ class Edge(val id: Int, startingCity: City) {
             it.edge1.startCity !in it.edge2.let { setOf(it.startCity, it.endCity) } &&
                     it.edge1.endCity !in it.edge2.let { setOf(it.startCity, it.endCity) }
         }
-                .firstOrNull { swap ->
-                    swap.execute()
-                    val result = Tour.isMaintained
-                    if (!result) {
-                        swap.reverse()
-                    }
-                    result
-                }
-    }
-
-
-    init {
-        startCityProperty.onChange {
-            if (defaultAnimationOn) {
-                sequentialTransition += timeline(play = false) {
-                    keyframe(speed) {
-                        keyvalue(edgeStartX, it?.x ?: 0.0)
-                        keyvalue(edgeStartY, it?.y ?: 0.0)
-                    }
-                }
+        .firstOrNull { swap ->
+            swap.execute()
+            val result = Tour.isMaintained
+            if (!result) {
+                swap.reverse()
             }
-        }
-        endCityProperty.onChange {
-            if (defaultAnimationOn)
-                sequentialTransition += timeline(play = false) {
-                    keyframe(speed) {
-                        keyvalue(edgeEndX, it?.x ?: 0.0)
-                        keyvalue(edgeEndY, it?.y ?: 0.0)
-                    }
-                }
-        }
-    }
-
-    fun animateChange() {
-        sequentialTransition += timeline(play = false) {
-            keyframe(speed) {
-                keyvalue(edgeStartX, startCity?.x ?: 0.0)
-                keyvalue(edgeStartY, startCity?.y ?: 0.0)
-                keyvalue(edgeEndX, endCity?.x ?: 0.0)
-                keyvalue(edgeEndY, endCity?.y ?: 0.0)
-            }
+            result
         }
     }
 

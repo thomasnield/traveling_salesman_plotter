@@ -1,5 +1,6 @@
 import javafx.beans.property.SimpleDoubleProperty
-import tornadofx.*
+import tornadofx.getValue
+import tornadofx.setValue
 
 object Parameters {
 
