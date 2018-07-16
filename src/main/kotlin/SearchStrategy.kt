@@ -53,22 +53,18 @@ enum class SearchStrategy {
             var bestSolution = Tour.toConfiguration()
 
             sequenceOf(
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } },
 
-                    generateSequence(120.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
+                    generateSequence(120.0) { (it - .0000001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } },
 
-                    generateSequence(140.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
-
-                    generateSequence(120.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .0001).takeIf { it >= 0 } }
+                    generateSequence(140.0) { (it - .0000001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .0000001).takeIf { it >= 0 } }
 
         ).flatMap { it }
             .forEach { temp ->
