@@ -21,7 +21,7 @@ def solve_it(input_data):
 
     #os.system("kotlinc src/main/kotlin/Launcher.kt -include-runtime -d launcher.jar")
 
-    process = Popen(['java', '-jar', 'launcher.jar', tmp_file_name], stdout=PIPE)
+    process = Popen(['java', '-jar', '-Xms512m', '-Xmx2048m', '-Xss4m', 'launcher.jar', tmp_file_name], stdout=PIPE)
     (stdout, stderr) = process.communicate()
 
     # removes the temporay file

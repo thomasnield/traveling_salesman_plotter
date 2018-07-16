@@ -52,18 +52,13 @@ enum class SearchStrategy {
             var bestDistance = Tour.tourDistance
             var bestSolution = Tour.toConfiguration()
 
-            val tempSchedule = sequenceOf(
-                    generateSequence(80.0) { (it - .00001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .00001).takeIf { it >= 0 } },
-                    generateSequence(140.0) { (it - .00001).takeIf { it >= 0 } },
-                    generateSequence(80.0) { (it - .00001).takeIf { it >= 0 } }
+            sequenceOf(
+                    generateSequence(80.0) { (it - .000005).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .000005).takeIf { it >= 0 } },
+                    generateSequence(80.0) { (it - .000005).takeIf { it >= 0 } }
+
                     ).flatMap { it }
-            .toList().toTypedArray().toDoubleArray().let {
-                TempSchedule(120, it)
-            }
-
-            while(tempSchedule.next()) {
-
+            .forEach { temp ->
                 Edge.all.sampleDistinct(2)
                         .toList()
                         .let { it.first() to it.last() }
@@ -80,8 +75,6 @@ enum class SearchStrategy {
                                     neighborDistance == bestDistance -> swap.reverse()
                                     oldDistance > neighborDistance -> {
 
-                                        //println("${tempSchedule.ratio}: $bestDistance->$neighborDistance")
-
                                         if (bestDistance > neighborDistance) {
                                             bestDistance = neighborDistance
                                             bestSolution = Tour.toConfiguration()
@@ -90,13 +83,10 @@ enum class SearchStrategy {
                                     oldDistance < neighborDistance -> {
 
                                         // Desmos graph for intuition: https://www.desmos.com/calculator/mn6av6ixx2
-                                        if (weightedCoinFlip(
-                                                        exp((-(neighborDistance - bestDistance)) / tempSchedule.heat)
+                                        if (!weightedCoinFlip(
+                                                        exp((-(neighborDistance - bestDistance)) / temp)
                                                 )
                                         ) {
-                                            //println("${tempSchedule.heat} accepting degrading solution: $bestDistance -> $neighborDistance")
-
-                                        } else {
                                             swap.reverse()
                                         }
                                     }
