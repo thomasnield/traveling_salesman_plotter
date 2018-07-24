@@ -17,8 +17,28 @@ class TSPView: View() {
     private val lines = mutableListOf<Line>()
 
     override val root = borderpane {
+        title = "Traveling Salesman Plotter"
+        primaryStage.isMaximized = true
 
+        top = menubar {
 
+            menu("File") {
+                item("Quit") {
+                    setOnAction {
+                        System.exit(0)
+                    }
+                }
+            }
+            menu("Edit")  {
+                item("Clear") {
+                    setOnAction {
+                        City.all.clear()
+                        Edge.all.clear()
+                        SearchStrategy.prepare()
+                    }
+                }
+            }
+        }
         left = toolbar {
             orientation = Orientation.VERTICAL
 
@@ -33,7 +53,16 @@ class TSPView: View() {
                     useMaxWidth = true
                 }
             }
+            separator(orientation = Orientation.HORIZONTAL)
+            separator(orientation = Orientation.HORIZONTAL)
 
+
+            label("DISTANCE")
+            textfield(Parameters.distanceProperty)
+
+            separator(orientation = Orientation.HORIZONTAL)
+
+            label("TEMPERATURE")
             stackpane {
                 progressbar(Parameters.animatedTempProperty) {
                     style {
@@ -45,31 +74,6 @@ class TSPView: View() {
                 useMaxWidth = true
             }
         }
-
-/*
-        left = drawer {
-            item("SIMULATED ANNEALING") {
-                vbox {
-                    stackpane {
-                        progressbar(Parameters.animatedTempProperty) {
-                            style {
-                                accentColor = Color.RED
-                            }
-                        }
-                        label(Parameters.animatedTempProperty)
-                        useMaxWidth = true
-                    }
-                    button("RUN") {
-                        setOnAction {
-                            SearchStrategy.prepare()
-                            SearchStrategy.SIMULATED_ANNEALING.execute()
-                            sequentialTransition.play()
-                        }
-                        useMaxWidth = true
-                    }
-                }
-            }
-        }*/
 
         center = pane {
 

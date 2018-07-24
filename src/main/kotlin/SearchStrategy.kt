@@ -2,6 +2,7 @@ import org.ojalgo.okalgo.expression
 import org.ojalgo.okalgo.variable
 import org.ojalgo.optimisation.ExpressionsBasedModel
 import tornadofx.*
+import java.lang.reflect.Parameter
 import kotlin.math.exp
 import kotlin.math.roundToInt
 
@@ -100,16 +101,13 @@ enum class SearchStrategy {
             var bestDistance = Tour.tourDistance
             var bestSolution = Tour.toConfiguration()
 
-            val tempSchedule = sequenceOf(
-                    generateSequence(80.0) { (it - .005).takeIf { it >= 0 } }/*,
+             sequenceOf(
+                    generateSequence(80.0) { (it - .05).takeIf { it >= 0 } }/*,
                     generateSequence(0.0) { (it + .005).takeIf { it <= 80 } },
                     generateSequence(80.0) { (it - .005).takeIf { it >= 30 } }*/
                     ).flatMap { it }
-            .toList().toTypedArray().toDoubleArray().let {
-                TempSchedule(200, it)
-            }
-
-            while(tempSchedule.next()) {
+                     .plus(0.0)
+                     .forEach { temp ->
 
                 Edge.all.sampleDistinct(2)
                         .toList()
@@ -127,8 +125,6 @@ enum class SearchStrategy {
                                     neighborDistance == bestDistance -> swap.reverse()
                                     oldDistance > neighborDistance -> {
 
-                                        println("${tempSchedule.ratio}: $bestDistance->$neighborDistance")
-
                                         if (bestDistance > neighborDistance) {
                                             bestDistance = neighborDistance
                                             bestSolution = Tour.toConfiguration()
@@ -139,11 +135,11 @@ enum class SearchStrategy {
 
                                         // Desmos graph for intuition: https://www.desmos.com/calculator/mn6av6ixx2
                                         if (weightedCoinFlip(
-                                                        exp((-(neighborDistance - bestDistance)) / tempSchedule.heat)
+                                                        exp((-(neighborDistance - bestDistance)) / temp)
                                                 )
                                         ) {
                                             swap.animate()
-                                            println("${tempSchedule.heat} accepting degrading solution: $bestDistance -> $neighborDistance")
+                                            //println("${temp} accepting degrading solution: $bestDistance -> $neighborDistance")
 
                                         } else {
                                             swap.reverse()
@@ -155,7 +151,7 @@ enum class SearchStrategy {
 
                 sequentialTransition += timeline(play=false) {
                     keyframe(1.millis) {
-                        keyvalue(Parameters.animatedTempProperty, tempSchedule.ratio)
+                        keyvalue(Parameters.animatedTempProperty, temp / 80 )
                     }
                 }
             }
@@ -171,11 +167,12 @@ enum class SearchStrategy {
                 Tour.applyConfiguration(bestSolution)
                 Edge.all.forEach { it.animateChange() }
             }
+
             println("$bestDistance<==>${Tour.tourDistance}")
             defaultAnimationOn = true
 
         }
-    },
+    }/*,
 
 
     INTEGER {
@@ -246,7 +243,7 @@ enum class SearchStrategy {
                     }
 
         }
-    };
+    }*/;
 
     abstract fun execute()
 

@@ -77,6 +77,12 @@ class Edge(val id: Int, startingCity: City) {
                     }
                 }
             }
+
+            sequentialTransition += timeline(play=false) {
+                keyframe(1.millis) {
+                    keyvalue(Parameters.distanceProperty, Tour.tourDistance )
+                }
+            }
         }
 
         override fun toString() = "$city1-$city2 ($edge1)-($edge2)"
