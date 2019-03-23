@@ -1,10 +1,5 @@
-import org.ojalgo.okalgo.expression
-import org.ojalgo.okalgo.variable
-import org.ojalgo.optimisation.ExpressionsBasedModel
 import tornadofx.*
-import java.lang.reflect.Parameter
 import kotlin.math.exp
-import kotlin.math.roundToInt
 
 enum class SearchStrategy {
     RANDOM {
@@ -109,51 +104,52 @@ enum class SearchStrategy {
                      .plus(0.0)
                      .forEach { temp ->
 
-                Edge.all.sampleDistinct(2)
-                        .toList()
-                        .let { it.first() to it.last() }
-                        .also { (e1,e2) ->
+                        Edge.all.sampleDistinct(2)
+                                .toList()
+                                .also { (e1,e2) ->
 
-                            val oldDistance = Tour.tourDistance
+                                    val oldDistance = Tour.tourDistance
 
-                            e1.attemptTwoSwap(e2)?.also { swap ->
+                                    // try to swap vertices on the two random edges
+                                    val swap = e1.attemptTwoSwap(e2)
 
-                                val neighborDistance = Tour.tourDistance
+                                    // track changes in distance
+                                    val newDistance = Tour.tourDistance
 
-                                when {
-                                    oldDistance == neighborDistance -> swap.reverse()
-                                    neighborDistance == bestDistance -> swap.reverse()
-                                    oldDistance > neighborDistance -> {
+                                    //if a swap was possible
+                                    if (swap != null) {
 
-                                        if (bestDistance > neighborDistance) {
-                                            bestDistance = neighborDistance
-                                            bestSolution = Tour.toConfiguration()
-                                        }
-                                        swap.animate()
-                                    }
-                                    oldDistance < neighborDistance -> {
+                                        // if swap is superior to curent distance, keep it
+                                        if (newDistance < oldDistance) {
 
-                                        // Desmos graph for intuition: https://www.desmos.com/calculator/mn6av6ixx2
-                                        if (weightedCoinFlip(
-                                                        exp((-(neighborDistance - bestDistance)) / temp)
-                                                )
-                                        ) {
                                             swap.animate()
-                                            //println("${temp} accepting degrading solution: $bestDistance -> $neighborDistance")
+                                            // if swap is superior to the last best found solution, save it as the new best solution
+                                            if (newDistance < bestDistance) {
+                                                bestDistance = newDistance
 
-                                        } else {
-                                            swap.reverse()
+                                                bestSolution = Tour.toConfiguration()
+                                            }
+                                        }
+                                        // shall I take an inferior move? Let's flip a coin
+                                        else {
+                                            // Desmos graph for intuition: https://www.desmos.com/calculator/rpfpfiq7ce
+                                            if (weightedCoinFlip(
+                                                            exp((-(newDistance - oldDistance)) / temp)
+                                                    )
+                                            ) {
+                                                swap.animate()
+                                            } else {
+                                                swap.reverse()
+                                            }
                                         }
                                     }
                                 }
+
+                        sequentialTransition += timeline(play=false) {
+                            keyframe(1.millis) {
+                                keyvalue(Parameters.animatedTempProperty, temp / 80 )
                             }
                         }
-
-                sequentialTransition += timeline(play=false) {
-                    keyframe(1.millis) {
-                        keyvalue(Parameters.animatedTempProperty, temp / 80 )
-                    }
-                }
             }
 
             (1..10).forEach {
